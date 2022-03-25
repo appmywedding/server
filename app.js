@@ -11,7 +11,9 @@ const logger = require('morgan');
 // Todo if users is firstly created then create the collections along with it.
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const invitesRouter = require('./routes/invites');
+const invitesRouter = require('./routes/invites')
+
+
 
 const app = express();
 
