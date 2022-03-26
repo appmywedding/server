@@ -35,8 +35,10 @@ router.post('/update', async function (req, res) {
 router.get('/getAll', async function (req, res) {
     try {
         const auth = getAuthFromReq(req);
+        console.log(req);
         const path = paths.invited(auth.uid);
         const invited = await db.getAll(path);
+        console.log(invited);
         res.status(200).send(invited);
     } catch (ex) {
         res.status(500).send(ex);
