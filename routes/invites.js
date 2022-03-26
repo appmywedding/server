@@ -32,10 +32,9 @@ router.post('/update', async function (req, res) {
     res.send(invitedToRemove);
 });
 
-router.get('/getAll', async function (req, res) {
+router.post('/getAll', async function (req, res) {
     try {
         const auth = getAuthFromReq(req);
-        console.log(req);
         const path = paths.invited(auth.uid);
         const invited = await db.getAll(path);
         console.log(invited);
@@ -48,6 +47,6 @@ router.get('/getAll', async function (req, res) {
 
 const getPeopleFromReq = (req) => req?.body?.people ? req?.body?.people : {};
 
-const getAuthFromReq = (req) => req?.body?.auth ? req?.body?.auth : {};
+const getAuthFromReq = (req) => req?.body?.auth ? req.body.auth : {};
 
 module.exports = router;
