@@ -15,9 +15,9 @@ router.post('/add', async function (req, res) {
             return;
         }
         const path = paths.invited(uid);
-        await db.addAll(path, people);
+        let newInvited = await db.addAll(path, invitedToAdd);
         res.status(200);
-        res.send(data.people);
+        res.send(newInvited);
     } catch (ex) {
         console.log(ex);
         res.status(500).send(ex);

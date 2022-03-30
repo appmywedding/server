@@ -57,10 +57,12 @@ const firebase = {
     },
 
     addAll: async (path, dataList) => {
+        let data = dataList
+        let retBody = [];
         if (!Array.isArray(dataList)) {
-            throw new Error("Data must be an array");
+            data = [dataList]
         }
-        dataList.forEach((invited) => {
+        data.forEach((invited) => {
             if (!invited.isActive) {
                 invited.isActive = true;
             }
@@ -68,9 +70,14 @@ const firebase = {
         const collection = getCollectionRef(path);
         const batch = db.batch();
         dataList.forEach((dataRow) => {
-            batch.create(collection.doc(), dataRow);
+            const doc = collection.doc();
+            let dataRowWithID = dataRow;
+            dataRowWithID.id = doc.id;
+            batch.create(doc, dataRow);
+            retBody.push(dataRowWithID);
         })
         await batch.commit();
+        return retBody;
     },
 
     get: async (path) => {
