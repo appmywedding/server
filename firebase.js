@@ -1,6 +1,8 @@
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { QuerySnapshot } = require('firebase-admin/firestore');
+const { invited } = require('./constants/paths');
+const invitedConverter = require('./converters/InvitedConverter');
 const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af27.json');
 
 
@@ -58,6 +60,11 @@ const firebase = {
         if (!Array.isArray(dataList)) {
             throw new Error("Data must be an array");
         }
+        dataList.forEach((invited) => {
+            if (!invited.isActive) {
+                invited.isActive = true;
+            }
+        })
         const collection = getCollectionRef(path);
         const batch = db.batch();
         dataList.forEach((dataRow) => {
@@ -77,10 +84,13 @@ const firebase = {
 
     getAll: async (path) => {
         const collectionRef = getCollectionRef(path);
-        const res = await collectionRef.get()
-            .catch((exception) => {
-                throw exception;
-            });
+        const res =
+            await collectionRef
+                .withConverter(invitedConverter)
+                .get()
+                .catch((exception) => {
+                    throw exception;
+                });
         return res.data();
     }
 

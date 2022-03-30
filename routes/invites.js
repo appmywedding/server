@@ -10,7 +10,6 @@ router.post('/add', async function (req, res) {
     try {
         const invitedToAdd = getPeopleFromReq(req);
         const uid = getUIDFromReq(req);
-        console.log(uid);
         if (!uid || (Object.keys(uid).length === 0 && Object.getPrototypeOf(uid) === Object.prototype)) {
             res.status(400).send({ ex: 'uid is null' });
             return;
@@ -39,11 +38,12 @@ router.post('/update', async function (req, res) {
     res.send(invitedToRemove);
 });
 
-router.post('/getAll', async function (req, res) {
+router.get('/getAll', async function (req, res) {
     try {
         const uid = getUIDFromReq(req);
         const path = paths.invited(uid);
         const invited = await db.getAll(path);
+        console.log(invited)
         res.status(200).send(invited);
     } catch (ex) {
         res.status(500).send(ex);
