@@ -1,9 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var data = require('../data');
 var db = require('../firebase');
 var paths = require('../constants/paths');
-var { people } = require('../data');
+const firebase = require('../firebase');
 
 
 router.post('/add', async function (req, res) {
@@ -19,23 +18,21 @@ router.post('/add', async function (req, res) {
         res.status(200);
         res.send(newInvited);
     } catch (ex) {
-        console.log(ex);
         res.status(500).send(ex);
     }
 });
 
 router.post('/remove', async function (req, res) {
     const invitedToRemove = getPeopleFromReq(req);
-    const auth = getUIDFromReq(req);
-    const path = paths.invited(auth.uid);
-    res.status(200);
-    res.send(invitedToRemove);
+    const uid = getUIDFromReq(req);
+    const path = paths.invited(uid);
+    const removedInvited = await firebase.remove(path, invitedToRemove);
+    res.status(200).send(removedInvited);
 });
 
 router.post('/update', async function (req, res) {
     const invitedToRemove = getPeopleFromReq(req);
-    res.status(200);
-    res.send(invitedToRemove);
+    res.status(200).res.send(invitedToRemove);
 });
 
 router.get('/getAll', async function (req, res) {
@@ -43,7 +40,6 @@ router.get('/getAll', async function (req, res) {
         const uid = getUIDFromReq(req);
         const path = paths.invited(uid);
         const invited = await db.getAll(path);
-        console.log(invited)
         res.status(200).send(invited);
     } catch (ex) {
         res.status(500).send(ex);

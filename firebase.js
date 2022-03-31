@@ -9,9 +9,6 @@ const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af2
 initializeApp({ credential: cert(credentials) });
 const db = getFirestore();
 
-// let app = firebaseApp.initializeApp(firebaseConfig);
-// let db = firestore.getFirestore(app);
-
 const getDocRef = (path) => {
     try {
         return db.doc(path);
@@ -48,12 +45,23 @@ const firebase = {
     },
 
     remove: async (path, data) => {
-        const docRef = getDocRef(path);
-        data['isActive'] = false;
-        await db.updateDoc(docRef, data)
-            .catch((exception) => { // if ex.code == unknown -> Internet problems
-                throw exception;
-            });
+        let retBody = [];
+        const batch = db.batch();
+        let dataList = data;
+        if (!Array.isArray(data)) {
+            dataList = [{ ...data }];
+        } else {
+            dataList = [...data];
+        }
+        for (let i = 0; i < dataList.length; i += 1) {
+            const dataRow = dataList[i];
+            dataRow.isActive = false;
+            const docRef = getDocRef(`${path}/${dataRow.id}`);
+            batch.update(docRef, dataRow);
+            retBody.push(dataRow);
+        }
+        await batch.commit();
+        return retBody;
     },
 
     addAll: async (path, dataList) => {
@@ -63,17 +71,15 @@ const firebase = {
             data = [dataList]
         }
         data.forEach((invited) => {
-            if (!invited.isActive) {
-                invited.isActive = true;
-            }
+            invited.isActive = true;
         })
         const collection = getCollectionRef(path);
         const batch = db.batch();
         dataList.forEach((dataRow) => {
             const doc = collection.doc();
-            let dataRowWithID = dataRow;
-            dataRowWithID.id = doc.id;
             batch.create(doc, dataRow);
+            let dataRowWithID = { ...dataRow };
+            dataRowWithID.id = doc.id;
             retBody.push(dataRowWithID);
         })
         await batch.commit();
@@ -93,6 +99,7 @@ const firebase = {
         const collectionRef = getCollectionRef(path);
         const res =
             await collectionRef
+                .where("isActive", "==", true)
                 .withConverter(invitedConverter)
                 .get()
                 .catch((exception) => {
@@ -104,16 +111,6 @@ const firebase = {
 }
 
 module.exports = firebase;
-
-// const firebaseConfig = {
-//     apiKey: "AIzaSyDwNEwQ07GCio2bSOc5s2o6qthTzyzpO2Y",
-//     authDomain: "mywedding-3c67a.firebaseapp.com",
-//     projectId: "mywedding-3c67a",
-//     storageBucket: "mywedding-3c67a.appspot.com",
-//     messagingSenderId: "429876417546",
-//     appId: "1:429876417546:web:a16b587455f9481e587bf3",
-//     measurementId: "G-F7C241B8ML"
-// };
 
 QuerySnapshot.prototype.data = function () {
     const data = [];
