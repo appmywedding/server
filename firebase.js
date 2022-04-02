@@ -1,7 +1,7 @@
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { QuerySnapshot } = require('firebase-admin/firestore');
-const { invited } = require('./constants/paths');
+const { paths } = require('./constants/paths');
 const invitedConverter = require('./converters/InvitedConverter');
 const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af27.json');
 
@@ -26,7 +26,7 @@ const getCollectionRef = (path) => {
 }
 
 
-const firebase = {
+const invited = {
     set: async (path, data) => {
         const docRef = getDocRef(path);
 
@@ -107,10 +107,95 @@ const firebase = {
                 });
         return res.data();
     }
+}
+
+
+const items = {
+    set: async (path, data) => {
+        const docRef = getDocRef(path);
+
+        await db.setDoc(docRef, data)
+            .catch((exception) => {
+                throw exception;
+            });
+    },
+
+    update: async (path, data) => {
+        const docRef = getDocRef(path);
+        await db.updateDoc(docRef, data)
+            .catch((exception) => {
+                throw exception;
+            });
+    },
+
+    remove: async (path, data) => {
+        let retBody = [];
+        const batch = db.batch();
+        let dataList = data;
+        if (!Array.isArray(data)) {
+            dataList = [{ ...data }];
+        } else {
+            dataList = [...data];
+        }
+        for (let i = 0; i < dataList.length; i += 1) {
+            const dataRow = dataList[i];
+            dataRow.isActive = false;
+            const docRef = getDocRef(`${path}/${dataRow.id}`);
+            batch.update(docRef, dataRow);
+            retBody.push(dataRow);
+        }
+        await batch.commit();
+        return retBody;
+    },
+
+    addAll: async (path, dataList) => {
+        let data = dataList
+        let retBody = [];
+        if (!Array.isArray(dataList)) {
+            data = [dataList]
+        }
+        data.forEach((invited) => {
+            invited.isActive = true;
+        })
+        const collection = getCollectionRef(path);
+        const batch = db.batch();
+        dataList.forEach((dataRow) => {
+            const doc = collection.doc();
+            batch.create(doc, dataRow);
+            let dataRowWithID = { ...dataRow };
+            dataRowWithID.id = doc.id;
+            retBody.push(dataRowWithID);
+        })
+        await batch.commit();
+        return retBody;
+    },
+
+    get: async (path) => {
+        const docRef = getDocRef(path);
+        const doc = await db.getDoc(docRef)
+            .catch((exception) => {
+                throw exception;
+            });
+        return doc.data();
+    },
+
+    getAll: async (path) => {
+        const collectionRef = getCollectionRef(path);
+        const res =
+            await collectionRef
+                .get()
+                .catch((exception) => {
+                    throw exception;
+                });
+        return res.data();
+    }
 
 }
 
-module.exports = firebase;
+module.exports = {
+    invited,
+    items
+};
 
 QuerySnapshot.prototype.data = function () {
     const data = [];
