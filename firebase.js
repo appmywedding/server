@@ -154,14 +154,14 @@ const items = {
         if (!Array.isArray(dataList)) {
             data = [dataList]
         }
-        data.forEach((invited) => {
-            invited.isActive = true;
+        data.forEach((item) => {
+            item.isActive = true;
         })
         const collection = getCollectionRef(path);
         const batch = db.batch();
         dataList.forEach((dataRow) => {
-            const doc = collection.doc();
-            batch.create(doc, dataRow);
+            const doc = collection.doc(dataRow.name);
+            batch.set(doc, dataRow, { merge: true });
             let dataRowWithID = { ...dataRow };
             dataRowWithID.id = doc.id;
             retBody.push(dataRowWithID);

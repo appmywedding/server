@@ -1,23 +1,24 @@
 var express = require('express');
 var router = express.Router();
-var db = require('../firebase');
+var { items } = require('../firebase');
 var paths = require('../constants/paths');
-const {items} = require('../firebase');
+
 
 
 router.post('/add', async function (req, res) {
     try {
-        const invitedToAdd = getPeopleFromReq(req);
+        const itemsToAdd = getItemsFromReq(req);
         const uid = getUIDFromReq(req);
-        if (!uid || (Object.keys(uid).length === 0 && Object.getPrototypeOf(uid) === Object.prototype)) {
-            res.status(400).send({ ex: 'uid is null' });
+        if (!uid || (Object.keys(uid).length === 0 && Object.getPrototypeOf(uid) === Object.prototype)) { // Todo add as interceptor
+            res.status(400).send({ ex: 'uid is invalid' });
             return;
         }
-        const path = paths.invited(uid);
-        let newInvited = await db.addAll(path, invitedToAdd);
+        const path = paths.items(uid);
+        let result = await items.addAll(path, itemsToAdd);
         res.status(200);
-        res.send(newInvited);
+        res.send(result);
     } catch (ex) {
+        console.log(ex);
         res.status(500).send(ex);
     }
 });
@@ -47,7 +48,7 @@ router.get('/getAll', async function (req, res) {
 
 });
 
-const getPeopleFromReq = (req) => req?.body?.people ? req?.body?.people : {};
+const getItemsFromReq = (req) => req?.body?.items ? req?.body?.items : {};
 
 const getUIDFromReq = (req) => req?.headers?.uid ? req?.headers?.uid : {};
 

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var paths = require('../constants/paths');
-const {invited} = require('../firebase');
+const { invited } = require('../firebase');
 
 
 router.post('/add', async function (req, res) {
@@ -13,7 +13,7 @@ router.post('/add', async function (req, res) {
             return;
         }
         const path = paths.invited(uid);
-        let newInvited = await item.addAll(path, invitedToAdd);
+        let newInvited = await invited.addAll(path, invitedToAdd);
         res.status(200);
         res.send(newInvited);
     } catch (ex) {
@@ -38,8 +38,8 @@ router.get('/getAll', async function (req, res) {
     try {
         const uid = getUIDFromReq(req);
         const path = paths.invited(uid);
-        const invited = await invited.getAll(path);
-        res.status(200).send(invited);
+        const result = await invited.getAll(path);
+        res.status(200).send(result);
     } catch (ex) {
         res.status(500).send(ex);
     }
