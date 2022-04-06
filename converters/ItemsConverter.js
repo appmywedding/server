@@ -7,10 +7,8 @@ const invitedConverter = {
     fromFirestore: function (snapshot, options = {}) {
         const data = snapshot.data(options);
         return {
-            id: snapshot.id,
-            name: data.name,
-            number: data.number,
-            isActive: data.isActive,
+            name: snapshot.id,
+            id: data.id,
         }
     }
 }

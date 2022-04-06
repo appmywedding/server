@@ -39,9 +39,9 @@ router.post('/update', async function (req, res) {
 router.get('/getAll', async function (req, res) {
     try {
         const uid = getUIDFromReq(req);
-        const path = paths.invited(uid);
-        const invited = await db.getAll(path);
-        res.status(200).send(invited);
+        const path = paths.items(uid);
+        const result = await items.getAll(path);
+        res.status(200).send(result);
     } catch (ex) {
         res.status(500).send(ex);
     }

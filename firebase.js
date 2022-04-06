@@ -3,6 +3,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { QuerySnapshot } = require('firebase-admin/firestore');
 const { paths } = require('./constants/paths');
 const invitedConverter = require('./converters/InvitedConverter');
+const ItemsConverter = require('./converters/ItemsConverter');
 const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af27.json');
 
 
@@ -181,13 +182,24 @@ const items = {
 
     getAll: async (path) => {
         const collectionRef = getCollectionRef(path);
-        const res =
+        const userItems =
             await collectionRef
+                .withConverter(ItemsConverter)
                 .get()
                 .catch((exception) => {
                     throw exception;
                 });
-        return res.data();
+        const items = {};
+        const itemsData = userItems.data();
+        console.log(itemsData)
+        for (let i = 0; i < itemsData?.length; i += 1) {
+            const item = itemsData[i];
+            items[item.name] = {};
+            let itemDocRef = getDocRef(`${item.name}/${item.id}`);
+            items[item.name] = (await itemDocRef.get()).data();
+        }
+        console.log(items)
+        return items;
     }
 
 }
