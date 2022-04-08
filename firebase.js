@@ -4,6 +4,7 @@ const { QuerySnapshot } = require('firebase-admin/firestore');
 const { paths } = require('./constants/paths');
 const invitedConverter = require('./converters/InvitedConverter');
 const ItemsConverter = require('./converters/ItemsConverter');
+const userConverter = require('./converters/UserConverter');
 const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af27.json');
 
 
@@ -201,12 +202,26 @@ const items = {
         console.log(items)
         return items;
     }
+}
 
+const user = {
+    get: async (uid) => {
+        const docRef = getDocRef(`users/${uid}`);
+        let result
+            = await docRef
+                .withConverter(userConverter)
+                .get()
+                .catch((exception) => {
+                    throw exception;
+                });
+        return result.data();
+    }
 }
 
 module.exports = {
     invited,
-    items
+    items,
+    user
 };
 
 QuerySnapshot.prototype.data = function () {
