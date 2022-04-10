@@ -1,15 +1,17 @@
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
+const { getStorage } = require('firebase-admin/storage');
 const { QuerySnapshot } = require('firebase-admin/firestore');
-const { paths } = require('./constants/paths');
 const invitedConverter = require('./converters/InvitedConverter');
 const ItemsConverter = require('./converters/ItemsConverter');
 const userConverter = require('./converters/UserConverter');
 const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af27.json');
+const { get } = require('./routes');
 
 
-initializeApp({ credential: cert(credentials) });
+const app = initializeApp({ credential: cert(credentials), storageBucket: 'gs://mywedding-3c67a.appspot.com/' });
 const db = getFirestore();
+const storage = getStorage();
 
 const getDocRef = (path) => {
     try {
@@ -112,7 +114,7 @@ const invited = {
 }
 
 
-const items = {
+const userItems = {
     set: async (path, data) => {
         const docRef = getDocRef(path);
 
@@ -218,10 +220,51 @@ const user = {
     }
 }
 
+const files = {
+    upload: async (path, file) => {
+        const bucket = storage.bucket();
+        const bucketFile = bucket.file(path);
+        await bucketFile.save(file.buffer, {
+            contentType: file.mimetype,
+            gzip: true
+        });
+
+        const [url] = await bucketFile.getSignedUrl({
+            action: "read",
+            expires: "01-01-2050"
+        });
+        return url;
+    }
+};
+
+const items = {
+    create: async (path, data) => {
+        const doc = getCollectionRef(path).doc();
+        await doc
+            .create(data)
+            .catch((error) => {
+                return error;
+            });
+        return doc.id;
+    },
+
+    getAll: async (type) => {
+        const collectionRef = getCollectionRef(type);
+        const result = await collectionRef.get()
+            .catch((error) => {
+                return error;
+            });
+        return result.data();
+    }
+
+}
+
 module.exports = {
     invited,
+    userItems,
+    user,
+    files,
     items,
-    user
 };
 
 QuerySnapshot.prototype.data = function () {
