@@ -7,6 +7,7 @@ const ItemsConverter = require('./converters/ItemsConverter');
 const userConverter = require('./converters/UserConverter');
 const credentials = require('./mywedding-3c67a-firebase-adminsdk-s1dgf-cfb413af27.json');
 const { get } = require('./routes');
+const { firestore } = require('firebase-admin');
 
 
 const app = initializeApp({ credential: cert(credentials), storageBucket: 'gs://mywedding-3c67a.appspot.com/' });
@@ -254,7 +255,13 @@ const items = {
             .catch((error) => {
                 return error;
             });
-        return result.data();
+        const resultData = [...result.data()];
+        let index = 0;
+        result.docs.forEach((doc) => {
+            resultData[index].id = doc.id;
+            index += 1;
+        });
+        return resultData
     }
 
 }
